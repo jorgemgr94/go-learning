@@ -32,6 +32,19 @@ func saveToFile(d deck, filename string) {
 	os.WriteFile(filename, []byte(d.toString()), 0666)
 }
 
+func newDeckFromFile(filename string) deck {
+	// byte slice is the representation of the string
+	// as a ASCII character code (byte)
+	bs, error := os.ReadFile(filename)
+	if error != nil {
+		fmt.Println("Error: ", error)
+		os.Exit(1)
+	}
+
+	cards := strings.Split(string(bs), ",")
+	return deck(cards)
+}
+
 // == Receiver functions =============================
 /*
 NOTE: this function is a receiver (d deck)

@@ -5,14 +5,14 @@ import (
 )
 
 func main() {
-	cards := createNewDeck()
+	deck1 := createNewDeck()
+	deck2 := newDeckFromFile("my_cards")
 
-	hand, rest := deal(cards, 5)
+	hand, rest := deal(deck1, 5)
 
-	// cards.print()
-	fmt.Println(hand)
+	fmt.Println(len(deck1))
+	fmt.Println(len(hand))
 	fmt.Println(len(rest))
-	fmt.Println(len(cards))
+	fmt.Println(len(deck2))
 
-	saveToFile(cards, "my_cards")
 }
