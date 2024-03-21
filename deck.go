@@ -2,14 +2,16 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"strings"
+	"time"
 )
 
 type deck []string
 
 // == Deck functions =================================
-func createNewDeck() deck {
+func newDeck() deck {
 	// array vs slice
 	// array: fixed length list of things
 	// slice: an array that can grow or shrink
@@ -26,7 +28,7 @@ func createNewDeck() deck {
 	return cards
 }
 
-func saveToFile(d deck, filename string) {
+func (d deck) saveToFile(filename string) {
 	// byte slice is the representation of the string
 	// as a ASCII character code (byte)
 	os.WriteFile(filename, []byte(d.toString()), 0666)
@@ -43,6 +45,21 @@ func newDeckFromFile(filename string) deck {
 
 	cards := strings.Split(string(bs), ",")
 	return deck(cards)
+}
+
+func (d deck) shuffle() {
+	// NOTE: creating a seed for the random number generator
+	//       using the current time as the seed
+	source := rand.NewSource(time.Now().UnixNano())
+	r := rand.New(source)
+
+	for i := range d {
+		// generate a random number between 0 and len(d)
+		newPosition := r.Intn(len(d) - 1)
+
+		// swap the current card with the card at the newPosition
+		d[i], d[newPosition] = d[newPosition], d[i]
+	}
 }
 
 // == Receiver functions =============================
