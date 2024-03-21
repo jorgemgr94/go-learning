@@ -28,12 +28,6 @@ func newDeck() deck {
 	return cards
 }
 
-func (d deck) saveToFile(filename string) {
-	// byte slice is the representation of the string
-	// as a ASCII character code (byte)
-	os.WriteFile(filename, []byte(d.toString()), 0666)
-}
-
 func newDeckFromFile(filename string) deck {
 	// byte slice is the representation of the string
 	// as a ASCII character code (byte)
@@ -45,6 +39,33 @@ func newDeckFromFile(filename string) deck {
 
 	cards := strings.Split(string(bs), ",")
 	return deck(cards)
+}
+
+func deal(d deck, handSize int) (deck, deck) {
+	return d[:handSize], d[handSize:]
+}
+
+// == Receiver functions =============================
+/*
+NOTE: this function is a receiver (d deck)
+We're extending any variable of type "deck"
+with the "print" method.
+*/
+func (d deck) print() {
+	for i, card := range d {
+		fmt.Println(i, card)
+	}
+}
+
+func (d deck) toString() string {
+	return strings.Join(d, ",")
+}
+
+// Receiver functions
+func (d deck) saveToFile(filename string) {
+	// byte slice is the representation of the string
+	// as a ASCII character code (byte)
+	os.WriteFile(filename, []byte(d.toString()), 0666)
 }
 
 func (d deck) shuffle() {
@@ -60,24 +81,4 @@ func (d deck) shuffle() {
 		// swap the current card with the card at the newPosition
 		d[i], d[newPosition] = d[newPosition], d[i]
 	}
-}
-
-// == Receiver functions =============================
-/*
-NOTE: this function is a receiver (d deck)
-We're extending any variable of type "deck"
-with the "print" method.
-*/
-func (d deck) print() {
-	for i, card := range d {
-		fmt.Println(i, card)
-	}
-}
-
-func deal(d deck, handSize int) (deck, deck) {
-	return d[:handSize], d[handSize:]
-}
-
-func (d deck) toString() string {
-	return strings.Join(d, ",")
 }
