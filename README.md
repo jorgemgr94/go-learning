@@ -9,3 +9,10 @@ go build main.go deck.go
 ```
 go run main.go deck.go
 ```
+
+# Test
+
+```
+go test
+```
+
