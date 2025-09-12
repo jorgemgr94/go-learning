@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 // This interface says that any other type that has a function getGreeting
 // with no arguments and returns a string is also of type bot
 type bot interface {
@@ -9,7 +11,8 @@ type bot interface {
 type englishBot struct{}
 type spanishBot struct{}
 
-func main() {
+func interfaces() {
+	fmt.Println("// == Interfaces ===========================================")
 	eb := englishBot{}
 	sb := spanishBot{}
 

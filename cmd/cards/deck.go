@@ -8,24 +8,26 @@ import (
 	"time"
 )
 
-type deck []string
+type deck struct {
+	cards []string
+}
 
 // == Deck functions =================================
 func newDeck() deck {
 	// array vs slice
 	// array: fixed length list of things
 	// slice: an array that can grow or shrink
-	cards := deck{}
+	deck := deck{cards: []string{}}
 	cardSuits := []string{"Spades", "Diamonds", "Hearts", "Clubs"}
 	cardValues := []string{"Ace", "Two", "Three", "Four"}
 
 	for _, suit := range cardSuits {
 		for _, value := range cardValues {
-			cards = append(cards, value+" of "+suit)
+			deck.cards = append(deck.cards, value+" of "+suit)
 		}
 	}
 
-	return cards
+	return deck
 }
 
 func newDeckFromFile(filename string) deck {
@@ -38,11 +40,11 @@ func newDeckFromFile(filename string) deck {
 	}
 
 	cards := strings.Split(string(bs), ",")
-	return deck(cards)
+	return deck{cards: cards}
 }
 
 func deal(d deck, handSize int) (deck, deck) {
-	return d[:handSize], d[handSize:]
+	return deck{cards: d.cards[:handSize]}, deck{cards: d.cards[handSize:]}
 }
 
 // == Receiver functions =============================
@@ -52,13 +54,14 @@ We're extending any variable of type "deck"
 with the "print" method.
 */
 func (d deck) print() {
-	for i, card := range d {
+	fmt.Println("Printing deck:", d)
+	for i, card := range d.cards {
 		fmt.Println(i, card)
 	}
 }
 
 func (d deck) toString() string {
-	return strings.Join(d, ",")
+	return strings.Join(d.cards, ",")
 }
 
 // Receiver functions
@@ -74,11 +77,11 @@ func (d deck) shuffle() {
 	source := rand.NewSource(time.Now().UnixNano())
 	r := rand.New(source)
 
-	for i := range d {
+	for i := range d.cards {
 		// generate a random number between 0 and len(d)
-		newPosition := r.Intn(len(d) - 1)
+		newPosition := r.Intn(len(d.cards) - 1)
 
 		// swap the current card with the card at the newPosition
-		d[i], d[newPosition] = d[newPosition], d[i]
+		d.cards[i], d.cards[newPosition] = d.cards[newPosition], d.cards[i]
 	}
 }

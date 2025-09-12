@@ -2,7 +2,8 @@ package main
 
 import "fmt"
 
-func main() {
+func maps() {
+	fmt.Println("// == Maps ===========================================")
 	// declaring a map with var
 	// var colors2 map[string]string
 

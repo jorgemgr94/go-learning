@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-func main() {
-
+func channels() {
+	fmt.Println("// == Channels ===========================================")
 	links := []string{
 		"http://google.com",
 		"http://facebook.com",

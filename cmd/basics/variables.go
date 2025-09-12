@@ -1,5 +1,6 @@
 /*
 Go's basic variable types:
+
 	bool
 
 	string
@@ -16,12 +17,16 @@ Go's basic variable types:
 
 	complex64 complex128
 */
-
 package main
 
 import "fmt"
 
+// variables is a function that demonstrates the basic variable types in Go.
+// It prints the value of the variables and the constants.
 func variables() {
+
+	fmt.Println("// == Variables ===========================================")
+
 	// == Short declaration ==========================================
 	// NOTE: in this case Go infers the type of the variable.
 	messageStart := "Happy birthday! You are now"

@@ -14,7 +14,8 @@ type person struct {
 	contact   contactInfo
 }
 
-func main() {
+func structs() {
+	fmt.Println("// == Structs ===========================================")
 	jack := person{
 		"Jack", "Bauer",
 		contactInfo{"jack@h.com", 67119},
