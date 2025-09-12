@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"go-learning/internal/config"
+	"go-learning/internal/routers"
 	"log/slog"
 	"net/http"
 	"os"
@@ -30,11 +31,9 @@ func main() {
 		c.JSON(200, gin.H{"message": "Graceful response completed"})
 	})
 
-	apiV1Group := router.Group("/api/v1")
+	apiV1 := router.Group("/api/v1")
 	{
-		apiV1Group.GET("/users", func(c *gin.Context) {
-			c.JSON(200, gin.H{"message": "Users"})
-		})
+		routers.UserRouter(apiV1)
 	}
 
 	server := &http.Server{
