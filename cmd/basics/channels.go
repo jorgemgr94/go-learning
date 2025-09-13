@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"net/http"
+	"runtime"
 	"time"
 )
 
@@ -34,6 +35,7 @@ func channels() {
 		case l := <-c:
 			time.Sleep(5 * time.Second)
 			go checkLink(l, c)
+			fmt.Printf("Active goroutines: %d\n", runtime.NumGoroutine())
 		case <-timer.C:
 			fmt.Println("Randomly exiting due to timeout!")
 			close(c)
@@ -51,7 +53,10 @@ func channels() {
 func checkLink(link string, c chan string) {
 	fmt.Println("Checking link:", link, "at", time.Now())
 	// check if the link is up
-	_, err := http.Get(link)
+	client := &http.Client{
+		Timeout: 5 * time.Second, // 5 second max per request
+	}
+	_, err := client.Get(link)
 	if err != nil {
 		fmt.Println(link, "might be down!")
 		c <- link
