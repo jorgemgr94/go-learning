@@ -18,6 +18,7 @@ func main() {
 
 	structs()
 	schemaValidator()
+	closures()
 
 	// wait for the channels goroutine to complete
 	wg.Wait()
