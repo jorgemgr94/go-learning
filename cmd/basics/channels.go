@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand/v2"
 	"net/http"
 	"time"
 )
@@ -16,33 +17,34 @@ func channels() {
 		"http://amazon.com",
 	}
 
-	// creating a channel
 	c := make(chan string)
 
-	// launch concurrent link checkers
+	// Random timeout between 10-30 seconds
+	randomTimeout := time.Duration(rand.IntN(20)+10) * time.Second
+	fmt.Printf("Will exit after %v\n", randomTimeout)
+
+	timer := time.NewTimer(randomTimeout)
+
 	for _, link := range links {
-		// concurrency is achieved by using go keyword.
 		go checkLink(link, c)
 	}
 
-	// Alternative 1: using range to receive the message from the channel
-	for l := range c {
-		time.Sleep(5 * time.Second)
-		go checkLink(l, c)
+	for {
+		select {
+		case l := <-c:
+			time.Sleep(5 * time.Second)
+			go checkLink(l, c)
+		case <-timer.C:
+			fmt.Println("Randomly exiting due to timeout!")
+			close(c)
+			return
+		}
 	}
 
-	// Alternative 2: using a for loop to receive the message from the channel
-	// for {
-	// 	time.Sleep(5 * time.Second)
-	// 	go checkLink(<-c, c)
-	// }
-
-	// Alternative 3: anonymous function to create a new go routine
+	// Alternative 1: using range to receive the message from the channel (single channel scenario)
 	// for l := range c {
-	// 	go func(link string) {
-	// 		time.Sleep(5 * time.Second)
-	// 		go checkLink(link, c)
-	// 	}(l)
+	// 	time.Sleep(5 * time.Second)
+	// 	go checkLink(l, c)
 	// }
 }
 
