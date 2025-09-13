@@ -1,0 +1,39 @@
+{
+    "entity_name": "Big Bad Formation LLC",
+    "entity_indicator": "LLC",
+    "entity_type": "llc",
+    "is_name_reservation": false,
+    "wants_to_provide_alternate_name": true,
+    "forced_dba_name": "Big Bad Formation DBA LLC",
+    "forced_dba_name_indicator": "LLC",
+    "wants_future_filing_date": false,
+    "principal_address": {
+      "address_1": "1234 Main. St",
+      "city": "Los Angeles",
+      "state": "CA",
+      "zip_code": "90210",
+      "country": "US"
+    },
+    "mailing_address": {
+      "address_1": "1234 Main. St",
+      "city": "Los Angeles",
+      "state": "CA",
+      "zip_code": "90210",
+      "country": "US"
+    },
+    "management_structure": "member_managed",
+    "registered_agent_type": "individual",
+    "registered_agent_individual": {
+      "first_name": "John",
+      "last_name": "Thomas",
+      "address_1": "1234 Main. St",
+      "city": "Los Angeles",
+      "state": "FL",
+      "zip_code": "90210"
+    },
+    "authorized_signatory": {
+      "full_name": "John Thomas",
+      "first_name": "John",
+      "last_name": "Thomas"
+    }
+}

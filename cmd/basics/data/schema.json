@@ -1,0 +1,1206 @@
+{
+    "type": "object",
+    "title": "Florida LLC Formation Schema",
+    "jurisdiction": "fl",
+    "product": "llc_formation",
+    "validFrom": "2025-09-12",
+    "required": [
+      "entity_name",
+      "entity_indicator",
+      "principal_address",
+      "mailing_address",
+      "registered_agent_type",
+      "management_structure",
+      "authorized_signatory",
+      "entity_type"
+    ],
+    "combinedLength": [
+      {
+        "fields": [
+          "entity_name",
+          "entity_indicator"
+        ],
+        "maxLength": 192
+      }
+    ],
+    "properties": {
+      "entity_name": {
+        "$id": "entity_name",
+        "type": "string",
+        "title": "Entity Name",
+        "description": "The name of the entity",
+        "maxLength": 250,
+        "$consistency": "jurisdictional",
+        "$comment": "must include “Limited Liability Company,” ”L.L.C.,” or “LLC.”)"
+      },
+      "is_name_reservation": {
+        "$id": "is_name_reservation",
+        "type": "boolean",
+        "title": "Is there a Name Reservation?",
+        "description": "If yes, you will be required to upload the Filed Name Reservation Document",
+        "$consistency": "jurisdictional"
+      },
+      "entity_type": {
+        "type": "string",
+        "$id": "entity_type",
+        "title": "Entity Type",
+        "description": "The type of entity to be formed",
+        "$consistency": "jurisdictional",
+        "oneOf": [
+          {
+            "const": "llc",
+            "title": "Limited Liability Company"
+          }
+        ]
+      },
+      "entity_indicator": {
+        "$id": "entity_indicator",
+        "type": "string",
+        "title": "Entity Indicator",
+        "description": "The appropriate designator, if required, such as \"Inc.\", \"LLC\", \"Ltd\", etc",
+        "maxLength": 49,
+        "$consistency": "jurisdictional",
+        "$comment": "Asked as part of the Entity name on the state form",
+        "enum": [
+          "Limited Liability Company",
+          "L.L.C.",
+          "LLC"
+        ]
+      },
+      "principal_address": {
+        "type": "object",
+        "title": "Principal Place of Business Address",
+        "required": [
+          "address_1",
+          "city",
+          "state",
+          "zip_code"
+        ],
+        "properties": {
+          "attn": {},
+          "address_1": {
+            "type": "string",
+            "title": "Address",
+            "maxLength": 255
+          },
+          "address_2": {
+            "type": "string",
+            "title": "STE/APT/FL",
+            "maxLength": 255
+          },
+          "city": {
+            "type": "string",
+            "title": "City",
+            "maxLength": 63
+          },
+          "state": {
+            "type": "string",
+            "oneOf": [
+              {
+                "const": "AL",
+                "title": "Alabama"
+              },
+              {
+                "const": "AK",
+                "title": "Alaska"
+              },
+              {
+                "const": "AZ",
+                "title": "Arizona"
+              },
+              {
+                "const": "AR",
+                "title": "Arkansas"
+              },
+              {
+                "const": "CA",
+                "title": "California"
+              },
+              {
+                "const": "CO",
+                "title": "Colorado"
+              },
+              {
+                "const": "CT",
+                "title": "Connecticut"
+              },
+              {
+                "const": "DE",
+                "title": "Delaware"
+              },
+              {
+                "const": "FL",
+                "title": "Florida"
+              },
+              {
+                "const": "GA",
+                "title": "Georgia"
+              },
+              {
+                "const": "HI",
+                "title": "Hawaii"
+              },
+              {
+                "const": "ID",
+                "title": "Idaho"
+              },
+              {
+                "const": "IL",
+                "title": "Illinois"
+              },
+              {
+                "const": "IN",
+                "title": "Indiana"
+              },
+              {
+                "const": "IA",
+                "title": "Iowa"
+              },
+              {
+                "const": "KS",
+                "title": "Kansas"
+              },
+              {
+                "const": "KY",
+                "title": "Kentucky"
+              },
+              {
+                "const": "LA",
+                "title": "Louisiana"
+              },
+              {
+                "const": "ME",
+                "title": "Maine"
+              },
+              {
+                "const": "MD",
+                "title": "Maryland"
+              },
+              {
+                "const": "MA",
+                "title": "Massachusetts"
+              },
+              {
+                "const": "MI",
+                "title": "Michigan"
+              },
+              {
+                "const": "MN",
+                "title": "Minnesota"
+              },
+              {
+                "const": "MS",
+                "title": "Mississippi"
+              },
+              {
+                "const": "MO",
+                "title": "Missouri"
+              },
+              {
+                "const": "MT",
+                "title": "Montana"
+              },
+              {
+                "const": "NE",
+                "title": "Nebraska"
+              },
+              {
+                "const": "NV",
+                "title": "Nevada"
+              },
+              {
+                "const": "NH",
+                "title": "New Hampshire"
+              },
+              {
+                "const": "NJ",
+                "title": "New Jersey"
+              },
+              {
+                "const": "NM",
+                "title": "New Mexico"
+              },
+              {
+                "const": "NY",
+                "title": "New York"
+              },
+              {
+                "const": "NC",
+                "title": "North Carolina"
+              },
+              {
+                "const": "ND",
+                "title": "North Dakota"
+              },
+              {
+                "const": "OH",
+                "title": "Ohio"
+              },
+              {
+                "const": "OK",
+                "title": "Oklahoma"
+              },
+              {
+                "const": "OR",
+                "title": "Oregon"
+              },
+              {
+                "const": "PA",
+                "title": "Pennsylvania"
+              },
+              {
+                "const": "RI",
+                "title": "Rhode Island"
+              },
+              {
+                "const": "SC",
+                "title": "South Carolina"
+              },
+              {
+                "const": "SD",
+                "title": "South Dakota"
+              },
+              {
+                "const": "TN",
+                "title": "Tennessee"
+              },
+              {
+                "const": "TX",
+                "title": "Texas"
+              },
+              {
+                "const": "UT",
+                "title": "Utah"
+              },
+              {
+                "const": "VT",
+                "title": "Vermont"
+              },
+              {
+                "const": "VA",
+                "title": "Virginia"
+              },
+              {
+                "const": "WA",
+                "title": "Washington"
+              },
+              {
+                "const": "WV",
+                "title": "West Virginia"
+              },
+              {
+                "const": "WI",
+                "title": "Wisconsin"
+              },
+              {
+                "const": "WY",
+                "title": "Wyoming"
+              }
+            ],
+            "title": "State"
+          },
+          "zip_code": {
+            "type": "string",
+            "title": "Zip Code",
+            "pattern": "^[0-9]{5}$"
+          },
+          "zip_plus_4": {
+            "type": "string",
+            "title": "Zip+4",
+            "pattern": "^[0-9]{4}$"
+          },
+          "country": {}
+        },
+        "$consistency": "jurisdictional",
+        "$id": "principal_address",
+        "description": "The principal address must be a street address. A PO box is not allowed.",
+        "poboxAllowed": false
+      },
+      "mailing_address": {
+        "type": "object",
+        "title": "Mailing Address",
+        "required": [
+          "address_1",
+          "city",
+          "state",
+          "zip_code"
+        ],
+        "properties": {
+          "attn": {},
+          "address_1": {
+            "type": "string",
+            "title": "Address",
+            "maxLength": 255
+          },
+          "address_2": {
+            "type": "string",
+            "title": "STE/APT/FL",
+            "maxLength": 255
+          },
+          "city": {
+            "type": "string",
+            "title": "City",
+            "maxLength": 63
+          },
+          "state": {
+            "type": "string",
+            "oneOf": [
+              {
+                "const": "AL",
+                "title": "Alabama"
+              },
+              {
+                "const": "AK",
+                "title": "Alaska"
+              },
+              {
+                "const": "AZ",
+                "title": "Arizona"
+              },
+              {
+                "const": "AR",
+                "title": "Arkansas"
+              },
+              {
+                "const": "CA",
+                "title": "California"
+              },
+              {
+                "const": "CO",
+                "title": "Colorado"
+              },
+              {
+                "const": "CT",
+                "title": "Connecticut"
+              },
+              {
+                "const": "DE",
+                "title": "Delaware"
+              },
+              {
+                "const": "FL",
+                "title": "Florida"
+              },
+              {
+                "const": "GA",
+                "title": "Georgia"
+              },
+              {
+                "const": "HI",
+                "title": "Hawaii"
+              },
+              {
+                "const": "ID",
+                "title": "Idaho"
+              },
+              {
+                "const": "IL",
+                "title": "Illinois"
+              },
+              {
+                "const": "IN",
+                "title": "Indiana"
+              },
+              {
+                "const": "IA",
+                "title": "Iowa"
+              },
+              {
+                "const": "KS",
+                "title": "Kansas"
+              },
+              {
+                "const": "KY",
+                "title": "Kentucky"
+              },
+              {
+                "const": "LA",
+                "title": "Louisiana"
+              },
+              {
+                "const": "ME",
+                "title": "Maine"
+              },
+              {
+                "const": "MD",
+                "title": "Maryland"
+              },
+              {
+                "const": "MA",
+                "title": "Massachusetts"
+              },
+              {
+                "const": "MI",
+                "title": "Michigan"
+              },
+              {
+                "const": "MN",
+                "title": "Minnesota"
+              },
+              {
+                "const": "MS",
+                "title": "Mississippi"
+              },
+              {
+                "const": "MO",
+                "title": "Missouri"
+              },
+              {
+                "const": "MT",
+                "title": "Montana"
+              },
+              {
+                "const": "NE",
+                "title": "Nebraska"
+              },
+              {
+                "const": "NV",
+                "title": "Nevada"
+              },
+              {
+                "const": "NH",
+                "title": "New Hampshire"
+              },
+              {
+                "const": "NJ",
+                "title": "New Jersey"
+              },
+              {
+                "const": "NM",
+                "title": "New Mexico"
+              },
+              {
+                "const": "NY",
+                "title": "New York"
+              },
+              {
+                "const": "NC",
+                "title": "North Carolina"
+              },
+              {
+                "const": "ND",
+                "title": "North Dakota"
+              },
+              {
+                "const": "OH",
+                "title": "Ohio"
+              },
+              {
+                "const": "OK",
+                "title": "Oklahoma"
+              },
+              {
+                "const": "OR",
+                "title": "Oregon"
+              },
+              {
+                "const": "PA",
+                "title": "Pennsylvania"
+              },
+              {
+                "const": "RI",
+                "title": "Rhode Island"
+              },
+              {
+                "const": "SC",
+                "title": "South Carolina"
+              },
+              {
+                "const": "SD",
+                "title": "South Dakota"
+              },
+              {
+                "const": "TN",
+                "title": "Tennessee"
+              },
+              {
+                "const": "TX",
+                "title": "Texas"
+              },
+              {
+                "const": "UT",
+                "title": "Utah"
+              },
+              {
+                "const": "VT",
+                "title": "Vermont"
+              },
+              {
+                "const": "VA",
+                "title": "Virginia"
+              },
+              {
+                "const": "WA",
+                "title": "Washington"
+              },
+              {
+                "const": "WV",
+                "title": "West Virginia"
+              },
+              {
+                "const": "WI",
+                "title": "Wisconsin"
+              },
+              {
+                "const": "WY",
+                "title": "Wyoming"
+              }
+            ],
+            "title": "State"
+          },
+          "zip_code": {
+            "type": "string",
+            "title": "Zip Code",
+            "pattern": "^[0-9]{5}$"
+          },
+          "zip_plus_4": {
+            "type": "string",
+            "title": "Zip+4",
+            "pattern": "^[0-9]{4}$"
+          },
+          "country": {}
+        },
+        "$consistency": "jurisdictional",
+        "$id": "mailing_address",
+        "description": "Mailing address can be a PO Box."
+      },
+      "registered_agent_type": {
+        "type": "string",
+        "title": "Registered Agent Type",
+        "description": "What type of Registered Agent will the entity use?",
+        "$comment": "Validation required here against purchasing ZB RA if the zenbusiness_registered_agent option is chosen",
+        "oneOf": [
+          {
+            "const": "individual",
+            "title": "Individual"
+          },
+          {
+            "const": "company",
+            "title": "Entity"
+          },
+          {
+            "const": "zenbusiness_registered_agent",
+            "title": "ZenBusiness Registered Agent"
+          }
+        ],
+        "$consistency": "jurisdictional"
+      },
+      "management_structure": {
+        "type": "string",
+        "title": "Management Structure",
+        "description": "The management structure of the business entity (whether members or hired managers are operating the entity)",
+        "$comment": "State-level field definitions control the enum values allowed, as different states allow different combinations",
+        "$consistency": "jurisdictional",
+        "oneOf": [
+          {
+            "const": "member_managed",
+            "title": "Member-Managed"
+          },
+          {
+            "const": "manager_managed",
+            "title": "Manager-Managed"
+          }
+        ]
+      },
+      "authorized_signatory": {
+        "$id": "authorized_signatory",
+        "title": "Authorized Signatory",
+        "type": "object",
+        "properties": {
+          "first_name": {
+            "type": "string",
+            "title": "First Name",
+            "maxLength": 256
+          },
+          "last_name": {
+            "type": "string",
+            "title": "Last Name",
+            "maxLength": 256
+          },
+          "signers_capacity": {
+            "title": "Title",
+            "type": "string"
+          },
+          "signature": {
+            "type": "string",
+            "title": "Signature",
+            "description": "Full name, indicating that this document is executed in accordance with section 605.0203 (1) (b), Florida Statutes. I am aware that any false information submitted in a document to the Department of State constitutes a third degree felony as provided for in s.817.155, F.S."
+          }
+        },
+        "required": [
+          "first_name",
+          "last_name"
+        ],
+        "$consistency": "jurisdictional",
+        "description": "Signature of a member or an authorized representative. I am the member or authorized representative submitting these Articles of Organization and affirm that the facts stated herein are true."
+      },
+      "additional_provisions": {
+        "type": "string",
+        "title": "Additional Information",
+        "description": "Any Other Provision(s) - Optional (Purpose, Statements, etc.)",
+        "maxLength": 240
+      },
+      "wants_future_filing_date": {
+        "$id": "wants_future_filing_date",
+        "type": "boolean",
+        "title": "Is Future File Date Requested?",
+        "description": "Whether filing should become active on a future date",
+        "$consistency": "none"
+      },
+      "wants_certificate_of_status": {
+        "type": "boolean",
+        "title": "Certificate of Status",
+        "description": "A Certificate of Status certifies the limited liability company is in good standing on our records. This is an additional $5 on top of $125 Required Filing Fee for total of $130"
+      },
+      "wants_certified_copy": {
+        "type": "boolean",
+        "title": "Certified Copy",
+        "description": "A Certified Copy certifies the articles of organization as true and correct. A copy of the articles will accompany the certificate and will be sent to you by email. This is an additional $30 on top of $125 Required Filing Fee for total of $155."
+      }
+    },
+    "allOf": [
+      {
+        "if": {
+          "properties": {
+            "is_name_reservation": {
+              "const": true
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "reserved_name": {
+              "type": "string",
+              "title": "Name reserved with Name Reservation",
+              "maxLength": 300,
+              "$consistency": "jurisdictional",
+              "$comment": "Required if is_name_reservation is true"
+            },
+            "reserved_name_indicator": {
+              "$id": "reserved_name_indicator",
+              "type": "string",
+              "title": "Indicator for name used in Name Reservation",
+              "description": "The appropriate designator, if required, such as \"Inc.\", \"LLC\", \"Ltd\", etc",
+              "maxLength": 49,
+              "$consistency": "jurisdictional",
+              "enum": [
+                "L.L.C.",
+                "LLC",
+                "Limited Liability Company",
+                "Ltd. Liability Company",
+                "Ltd. Liability Co.",
+                "Limited Liability Co."
+              ],
+              "$comment": "Required if is_name_reservation is true"
+            }
+          },
+          "required": [
+            "reserved_name",
+            "reserved_name_indicator"
+          ]
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "wants_future_filing_date": {
+              "const": true
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "future_filing_date": {
+              "type": "string",
+              "format": "date",
+              "title": "Date of Filing/ Registration in Florida",
+              "description": "Future date when filing should be submitted",
+              "$consistency": "none",
+              "withinDays": 90
+            }
+          },
+          "required": [
+            "future_filing_date"
+          ]
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "registered_agent_type": {
+              "const": "individual"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "registered_agent_individual": {
+              "type": "object",
+              "title": "Registered Agent",
+              "required": [
+                "first_name",
+                "last_name",
+                "address_1",
+                "city",
+                "state",
+                "zip_code"
+              ],
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "title": "Title"
+                },
+                "first_name": {
+                  "type": "string",
+                  "title": "First Name",
+                  "maxLength": 256
+                },
+                "middle_name": {
+                  "type": "string",
+                  "title": "Middle Name",
+                  "maxLength": 256
+                },
+                "last_name": {
+                  "type": "string",
+                  "title": "Last Name",
+                  "maxLength": 256
+                },
+                "suffix": {
+                  "type": "string",
+                  "title": "Suffix",
+                  "maxLength": 256
+                },
+                "address_1": {
+                  "type": "string",
+                  "title": "Address",
+                  "maxLength": 255
+                },
+                "address_2": {},
+                "city": {
+                  "type": "string",
+                  "title": "City",
+                  "maxLength": 63
+                },
+                "state": {
+                  "type": "string",
+                  "const": "FL",
+                  "title": "Florida (non-editable)"
+                },
+                "zip_code": {
+                  "type": "string",
+                  "title": "Zip Code",
+                  "pattern": "^[0-9]{5}$"
+                },
+                "zip_plus_4": {
+                  "type": "string",
+                  "title": "Zip+4",
+                  "pattern": "^[0-9]{4}$"
+                },
+                "country": {
+                  "type": "string",
+                  "title": "Country",
+                  "const": "US",
+                  "maxLength": 31
+                },
+                "signature": {
+                  "type": "string",
+                  "title": "Full name and title of registered agent, signature indicating consent"
+                }
+              },
+              "$consistency": "jurisdictional",
+              "$id": "registered_agent_individual",
+              "description": "Name and street address of Florida registered agent",
+              "poboxAllowed": false
+            }
+          },
+          "required": [
+            "registered_agent_individual"
+          ]
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "registered_agent_type": {
+              "const": "company"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "registered_agent_company": {
+              "type": "object",
+              "title": "Registered Agent",
+              "required": [
+                "company_name",
+                "address_1",
+                "city",
+                "state",
+                "zip_code",
+                "signature"
+              ],
+              "$comment": "All max lengths are from zenapi's contacts table - override for jur-specific limits",
+              "properties": {
+                "company_name": {
+                  "type": "string",
+                  "title": "Company Name",
+                  "maxLength": 256
+                },
+                "address_1": {
+                  "type": "string",
+                  "title": "Address",
+                  "maxLength": 255
+                },
+                "address_2": {},
+                "city": {
+                  "type": "string",
+                  "title": "City",
+                  "maxLength": 63
+                },
+                "state": {
+                  "type": "string",
+                  "const": "FL",
+                  "title": "Florida (non-editable)"
+                },
+                "zip_code": {
+                  "type": "string",
+                  "title": "Zip Code",
+                  "pattern": "^[0-9]{5}$"
+                },
+                "zip_plus_4": {
+                  "type": "string",
+                  "title": "Zip+4",
+                  "pattern": "^[0-9]{4}$"
+                },
+                "signature": {
+                  "type": "string",
+                  "title": "Full name and title of individual authorized by the registered agent entity, signature indicating consent"
+                }
+              },
+              "$consistency": "jurisdictional",
+              "$id": "registered_agent_company",
+              "description": "Name and street address of Florida registered agent"
+            }
+          },
+          "required": [
+            "registered_agent_company"
+          ]
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "registered_agent_type": {
+              "const": "zenbusiness_registered_agent"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "sop_contact": {
+              "type": "object",
+              "title": "Service of Process Contact",
+              "required": [
+                "first_name",
+                "last_name",
+                "address_1",
+                "city",
+                "state",
+                "zip_code",
+                "county",
+                "email_address",
+                "phone_number",
+                "country"
+              ],
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "title": "Title"
+                },
+                "first_name": {
+                  "type": "string",
+                  "title": "First Name",
+                  "maxLength": 256
+                },
+                "middle_name": {
+                  "type": "string",
+                  "title": "Middle Name",
+                  "maxLength": 256
+                },
+                "last_name": {
+                  "type": "string",
+                  "title": "Last Name",
+                  "maxLength": 256
+                },
+                "suffix": {
+                  "type": "string",
+                  "title": "Suffix",
+                  "maxLength": 256
+                },
+                "address_1": {
+                  "type": "string",
+                  "title": "Address",
+                  "maxLength": 255
+                },
+                "address_2": {
+                  "type": "string",
+                  "title": "STE/APT/FL",
+                  "maxLength": 255
+                },
+                "city": {
+                  "type": "string",
+                  "title": "City",
+                  "maxLength": 63
+                },
+                "state": {
+                  "type": "string",
+                  "oneOf": [
+                    {
+                      "const": "AL",
+                      "title": "Alabama"
+                    },
+                    {
+                      "const": "AK",
+                      "title": "Alaska"
+                    },
+                    {
+                      "const": "AZ",
+                      "title": "Arizona"
+                    },
+                    {
+                      "const": "AR",
+                      "title": "Arkansas"
+                    },
+                    {
+                      "const": "CA",
+                      "title": "California"
+                    },
+                    {
+                      "const": "CO",
+                      "title": "Colorado"
+                    },
+                    {
+                      "const": "CT",
+                      "title": "Connecticut"
+                    },
+                    {
+                      "const": "DE",
+                      "title": "Delaware"
+                    },
+                    {
+                      "const": "FL",
+                      "title": "Florida"
+                    },
+                    {
+                      "const": "GA",
+                      "title": "Georgia"
+                    },
+                    {
+                      "const": "HI",
+                      "title": "Hawaii"
+                    },
+                    {
+                      "const": "ID",
+                      "title": "Idaho"
+                    },
+                    {
+                      "const": "IL",
+                      "title": "Illinois"
+                    },
+                    {
+                      "const": "IN",
+                      "title": "Indiana"
+                    },
+                    {
+                      "const": "IA",
+                      "title": "Iowa"
+                    },
+                    {
+                      "const": "KS",
+                      "title": "Kansas"
+                    },
+                    {
+                      "const": "KY",
+                      "title": "Kentucky"
+                    },
+                    {
+                      "const": "LA",
+                      "title": "Louisiana"
+                    },
+                    {
+                      "const": "ME",
+                      "title": "Maine"
+                    },
+                    {
+                      "const": "MD",
+                      "title": "Maryland"
+                    },
+                    {
+                      "const": "MA",
+                      "title": "Massachusetts"
+                    },
+                    {
+                      "const": "MI",
+                      "title": "Michigan"
+                    },
+                    {
+                      "const": "MN",
+                      "title": "Minnesota"
+                    },
+                    {
+                      "const": "MS",
+                      "title": "Mississippi"
+                    },
+                    {
+                      "const": "MO",
+                      "title": "Missouri"
+                    },
+                    {
+                      "const": "MT",
+                      "title": "Montana"
+                    },
+                    {
+                      "const": "NE",
+                      "title": "Nebraska"
+                    },
+                    {
+                      "const": "NV",
+                      "title": "Nevada"
+                    },
+                    {
+                      "const": "NH",
+                      "title": "New Hampshire"
+                    },
+                    {
+                      "const": "NJ",
+                      "title": "New Jersey"
+                    },
+                    {
+                      "const": "NM",
+                      "title": "New Mexico"
+                    },
+                    {
+                      "const": "NY",
+                      "title": "New York"
+                    },
+                    {
+                      "const": "NC",
+                      "title": "North Carolina"
+                    },
+                    {
+                      "const": "ND",
+                      "title": "North Dakota"
+                    },
+                    {
+                      "const": "OH",
+                      "title": "Ohio"
+                    },
+                    {
+                      "const": "OK",
+                      "title": "Oklahoma"
+                    },
+                    {
+                      "const": "OR",
+                      "title": "Oregon"
+                    },
+                    {
+                      "const": "PA",
+                      "title": "Pennsylvania"
+                    },
+                    {
+                      "const": "RI",
+                      "title": "Rhode Island"
+                    },
+                    {
+                      "const": "SC",
+                      "title": "South Carolina"
+                    },
+                    {
+                      "const": "SD",
+                      "title": "South Dakota"
+                    },
+                    {
+                      "const": "TN",
+                      "title": "Tennessee"
+                    },
+                    {
+                      "const": "TX",
+                      "title": "Texas"
+                    },
+                    {
+                      "const": "UT",
+                      "title": "Utah"
+                    },
+                    {
+                      "const": "VT",
+                      "title": "Vermont"
+                    },
+                    {
+                      "const": "VA",
+                      "title": "Virginia"
+                    },
+                    {
+                      "const": "WA",
+                      "title": "Washington"
+                    },
+                    {
+                      "const": "WV",
+                      "title": "West Virginia"
+                    },
+                    {
+                      "const": "WI",
+                      "title": "Wisconsin"
+                    },
+                    {
+                      "const": "WY",
+                      "title": "Wyoming"
+                    }
+                  ],
+                  "title": "State"
+                },
+                "zip_code": {
+                  "type": "string",
+                  "title": "Zip Code",
+                  "pattern": "^[0-9]{5}$"
+                },
+                "zip_plus_4": {
+                  "type": "string",
+                  "title": "Zip+4",
+                  "pattern": "^[0-9]{4}$"
+                },
+                "country": {
+                  "type": "string",
+                  "const": "US",
+                  "maxLength": 2
+                },
+                "county": {
+                  "title": "County",
+                  "type": "string"
+                },
+                "email_address": {
+                  "type": "string",
+                  "title": "Email Address",
+                  "format": "email",
+                  "maxLength": 256,
+                  "$consistency": "jurisdictional"
+                },
+                "phone_number": {
+                  "type": "string",
+                  "title": "Phone Number",
+                  "pattern": "^(\\+\\d{1,3}[- ]?)?(1[- ]?)?(\\(?\\d{3}\\)?[- ]?)?\\d{3}[- ]?\\d{4}$",
+                  "$consistency": "none"
+                }
+              },
+              "$consistency": "global",
+              "$id": "sop_contact",
+              "description": "The registered agent for the entity will send services of process to this person."
+            }
+          },
+          "required": [
+            "sop_contact"
+          ]
+        }
+      }
+    ]
+  }
+  
