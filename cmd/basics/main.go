@@ -9,6 +9,7 @@ func main() {
 	slices()
 	interfaces()
 
+	// older way to use wait groups
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
@@ -19,6 +20,7 @@ func main() {
 	structs()
 	schemaValidator()
 	closures()
+	mutex()
 
 	// wait for the channels goroutine to complete
 	wg.Wait()
