@@ -1,0 +1,79 @@
+name: Deploy to Fly.io
+
+on:
+  push:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'development'
+        type: choice
+        options:
+          - development
+          - production
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache: true
+      
+      - name: Install dependencies
+        run: go mod download
+      
+      - name: Run tests
+        run: go test -v -race ./...
+
+  deploy:
+    name: Deploy to ${{ matrix.environment }}
+    runs-on: ubuntu-latest
+    needs: test
+    strategy:
+      matrix:
+        include:
+          - environment: development
+            app_name: go-learning-dev
+            condition: github.ref == 'refs/heads/develop' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'development')
+          - environment: production
+            app_name: go-learning
+            condition: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+    
+    if: ${{ matrix.condition }}
+    
+    environment:
+      name: ${{ matrix.environment }}
+      url: https://${{ matrix.app_name }}.fly.dev
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Fly.io CLI
+        uses: superfly/flyctl-actions/setup-flyctl@master
+      
+      - name: Deploy to Fly.io
+        run: flyctl deploy --app ${{ matrix.app_name }}
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      
+      - name: Create deployment status
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: context.payload.deployment?.id || 0,
+              state: 'success',
+              description: 'Successfully deployed to Fly.io ${{ matrix.environment }}',
+              environment_url: 'https://${{ matrix.app_name }}.fly.dev'
+            });

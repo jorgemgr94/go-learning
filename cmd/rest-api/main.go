@@ -37,7 +37,7 @@ func main() {
 	}
 
 	server := &http.Server{
-		Addr:    fmt.Sprintf("localhost:%d", config.Port),
+		Addr:    fmt.Sprintf(":%d", config.Port),
 		Handler: router,
 	}
 
