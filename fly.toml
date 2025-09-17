@@ -1,5 +1,5 @@
 app = 'go-learning'
-primary_region = 'iad'
+primary_region = 'qro'
 
 [build]
   [build.args]
