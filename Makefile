@@ -1,47 +1,58 @@
-# Build the cards application
+# Cards application
 build-cards:
 	@echo "Building cards application..."
 	go build ./cmd/cards
-
-# Run the cards application
 run-cards:
 	@echo "Running cards application..."
 	go run ./cmd/cards
-
-# Run the tests for the cards application
 test-cards:
 	@echo "Running cards tests..."
 	go test ./cmd/cards
 
-# Build basics application
+# Basics application
 build-basics:
 	@echo "Building basics application..."
 	go build ./cmd/basics
-
-# Run the basics application
 run-basics:
 	@echo "Running basics application..."
 	go run ./cmd/basics
-
-# Run the tests for the basics application
 test-basics:
 	@echo "Running basics tests..."
 	go test ./cmd/basics
 
-# Build the rest api application
+# Rest api application
 build-rest-api:
 	@echo "Building rest api application..."
 	go build ./cmd/rest-api
-
-# Run the rest api application
 run-rest-api:
 	@echo "Running rest api application..."
 	go run ./cmd/rest-api
-
-# Run the tests for the rest api application
 test-rest-api:
 	@echo "Running rest api application tests..."
 	go test ./cmd/rest-api
+
+# Grpc application
+compile-grpc:
+	@echo "Compiling grpc proto files..."
+	make clean-grpc
+	protoc --go_out=. --go-grpc_out=. \
+		--go_opt=module=go-learning \
+		--go-grpc_opt=module=go-learning \
+		api/proto/common/*.proto \
+		api/proto/user/*.proto \
+		api/proto/order/*.proto
+
+clean-grpc:
+	@echo "Cleaning generated grpc files..."
+	rm -rf pkg/grpc/
+
+run-grpc-server:
+	@echo "Running grpc server..."
+	go run ./cmd/grpc/server
+
+run-grpc-client:
+	@echo "Running grpc client..."
+	go run ./cmd/grpc/client
 
 help:
 	@echo "Usage: make <target>"

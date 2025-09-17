@@ -1,0 +1,44 @@
+
+syntax = "proto3";
+
+package user;
+
+option go_package = "go-learning/pkg/grpc/user";
+
+import "api/proto/common/common.proto";
+
+service UserService {
+  rpc GetUser (GetUserRequest) returns (GetUserReply);
+  rpc CreateUser (CreateUserRequest) returns (CreateUserReply);
+}
+
+message GetUserRequest {
+  string id = 1;
+
+  // Reserved space for future filtering options
+  reserved 2, 3;
+}
+
+message GetUserReply {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  common.ResponseStatus status = 4;
+
+  // Reserved field numbers for future attributes (phone, roles, etc.)
+  reserved 5, 6, 7;
+  reserved "phone", "role";
+}
+
+message CreateUserRequest {
+  string name = 1;
+  string email = 2;
+
+  // Reserved space for future attributes (e.g., password, metadata)
+  reserved 3, 4;
+}
+
+message CreateUserReply {
+  string id = 1;
+  common.ResponseStatus status = 2;
+}

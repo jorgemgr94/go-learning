@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package common;
+
+option go_package = "go-learning/pkg/grpc/common";
+
+message ResponseStatus {
+  int32 code = 1;
+  string message = 2;
+
+  // Reserved tags for possible future use
+  reserved 3, 4;
+}

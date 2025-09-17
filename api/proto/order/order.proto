@@ -1,0 +1,42 @@
+
+syntax = "proto3";
+
+package order;
+
+option go_package = "go-learning/pkg/grpc/order";
+
+import "api/proto/common/common.proto";
+
+service OrderService {
+  rpc GetOrder (GetOrderRequest) returns (GetOrderReply);
+  rpc CreateOrder (CreateOrderRequest) returns (CreateOrderReply);
+}
+
+message GetOrderRequest {
+  string id = 1;
+
+  // Reserved for filters (status, date range, etc.)
+  reserved 2, 3;
+}
+
+message GetOrderReply {
+  string id = 1;
+  double amount = 2;
+  repeated string product_ids = 3; // more realistic: an order has products
+  common.ResponseStatus status = 4;
+
+  reserved 5 to 10; // keep room for extra attributes (discounts, taxes, etc.)
+}
+
+message CreateOrderRequest {
+  string user_id = 1;
+  repeated string product_ids = 2;
+
+  // Reserved for pricing options, shipping info, etc.
+  reserved 3, 4, 5;
+}
+
+message CreateOrderReply {
+  string id = 1;
+  common.ResponseStatus status = 2;
+}
