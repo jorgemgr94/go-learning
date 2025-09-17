@@ -33,10 +33,16 @@ jobs:
           
           # Check if there are conventional commits since last release
           LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          # Get commits since last tag (or all commits if no tags)
           if [ -z "$LAST_TAG" ]; then
+            # No tags exist, check all commits
             COMMITS=$(git rev-list --count HEAD)
+            COMMITS_SINCE_TAG=$(git log --pretty=format:"%s" HEAD)
           else
+            # Tags exist, check commits since last tag
             COMMITS=$(git rev-list --count ${LAST_TAG}..HEAD)
+            COMMITS_SINCE_TAG=$(git log --pretty=format:"%s" ${LAST_TAG}..HEAD)
           fi
           
           if [ "$COMMITS" -eq 0 ]; then
@@ -46,11 +52,7 @@ jobs:
           fi
           
           # Check for conventional commits
-          if [ -z "$LAST_TAG" ]; then
-            CONVENTIONAL_COMMITS=$(git log --pretty=format:"%s" HEAD~${COMMITS}..HEAD | grep -E "^(feat|fix|perf|refactor|docs|style|test|chore)(\(.+\))?: .+" | wc -l)
-          else
-            CONVENTIONAL_COMMITS=$(git log --pretty=format:"%s" ${LAST_TAG}..HEAD | grep -E "^(feat|fix|perf|refactor|docs|style|test|chore)(\(.+\))?: .+" | wc -l)
-          fi
+          CONVENTIONAL_COMMITS=$(echo "$COMMITS_SINCE_TAG" | grep -E "^(feat|fix|perf|refactor|docs|style|test|chore)(\(.+\))?: .+" | wc -l)
           
           if [ "$CONVENTIONAL_COMMITS" -eq 0 ]; then
             echo "should-release=false" >> $GITHUB_OUTPUT
@@ -63,22 +65,14 @@ jobs:
             NEW_VERSION="v1.0.0"
           else
             # Check for breaking changes
-            if [ -z "$LAST_TAG" ]; then
-              BREAKING_CHANGES=$(git log --pretty=format:"%s" HEAD~${COMMITS}..HEAD | grep -E "^(feat|fix|perf|refactor)(\(.+\))?!: .+" | wc -l)
-            else
-              BREAKING_CHANGES=$(git log --pretty=format:"%s" ${LAST_TAG}..HEAD | grep -E "^(feat|fix|perf|refactor)(\(.+\))?!: .+" | wc -l)
-            fi
+            BREAKING_CHANGES=$(echo "$COMMITS_SINCE_TAG" | grep -E "^(feat|fix|perf|refactor)(\(.+\))?!: .+" | wc -l)
             
             if [ "$BREAKING_CHANGES" -gt 0 ]; then
               # Major version bump
               NEW_VERSION=$(echo $LAST_TAG | sed 's/v//' | awk -F. '{print "v" ($1+1) ".0.0"}')
             else
               # Check for new features
-              if [ -z "$LAST_TAG" ]; then
-                NEW_FEATURES=$(git log --pretty=format:"%s" HEAD~${COMMITS}..HEAD | grep -E "^feat(\(.+\))?: .+" | wc -l)
-              else
-                NEW_FEATURES=$(git log --pretty=format:"%s" ${LAST_TAG}..HEAD | grep -E "^feat(\(.+\))?: .+" | wc -l)
-              fi
+              NEW_FEATURES=$(echo "$COMMITS_SINCE_TAG" | grep -E "^feat(\(.+\))?: .+" | wc -l)
               
               if [ "$NEW_FEATURES" -gt 0 ]; then
                 # Minor version bump
