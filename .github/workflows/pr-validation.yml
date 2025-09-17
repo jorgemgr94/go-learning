@@ -59,6 +59,7 @@ jobs:
           fi
 
       - name: Calculate next version
+        id: version-calc
         run: |
           # Analyze commits to predict version bump
           # Filter out merge commits
@@ -107,7 +108,19 @@ jobs:
             BUMP_EMOJI="📝"
           fi
           
-          # Create summary
+          # Store values for output
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "next_version=$NEXT_VERSION" >> $GITHUB_OUTPUT
+          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+          echo "bump_emoji=$BUMP_EMOJI" >> $GITHUB_OUTPUT
+          echo "breaking_changes=$BREAKING_CHANGES" >> $GITHUB_OUTPUT
+          echo "new_features=$NEW_FEATURES" >> $GITHUB_OUTPUT
+          echo "bug_fixes=$BUG_FIXES" >> $GITHUB_OUTPUT
+          echo "commits<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Create summary for step summary
           echo "## 🚀 Release Prediction" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Current Version:** \`$CURRENT_VERSION\`" >> $GITHUB_STEP_SUMMARY
@@ -124,12 +137,67 @@ jobs:
           
           # Add commit details
           if [ -n "$COMMITS" ]; then
-            echo "### 📝 Commits in this PR" >> $GITHUB_STEP_SUMMARY
+            echo "### �� Commits in this PR" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
             echo "$COMMITS" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
           fi
-          
-          # Store version for potential use in other steps
-          echo "NEXT_VERSION=$NEXT_VERSION" >> $GITHUB_ENV
-          echo "BUMP_TYPE=$BUMP_TYPE" >> $GITHUB_ENV
+
+      - name: Post Release Prediction Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { current_version, next_version, bump_type, bump_emoji, breaking_changes, new_features, bug_fixes, commits } = context.payload.outputs;
+            
+            // Find existing bot comment
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.data.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('🚀 Release Prediction')
+            );
+            
+            const commentBody = `## 🚀 Release Prediction
+            
+            **Current Version:** \`${{ steps.version-calc.outputs.current_version }}\`
+            **Next Version:** \`${{ steps.version-calc.outputs.next_version }}\`
+            
+            ### 📊 Commit Analysis
+            - Breaking changes: **${{ steps.version-calc.outputs.breaking_changes }}**
+            - New features: **${{ steps.version-calc.outputs.new_features }}**
+            - Bug fixes: **${{ steps.version-calc.outputs.bug_fixes }}**
+            
+            ### 🎯 Version Bump Type
+            ${{ steps.version-calc.outputs.bump_emoji }} **${{ steps.version-calc.outputs.bump_type }}** version bump
+            
+            ### 📝 Commits in this PR
+            \`\`\`
+            ${{ steps.version-calc.outputs.commits }}
+            \`\`\`
+            
+            ---
+            *This comment is automatically updated when commits are added to this PR.*`;
+            
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody
+              });
+            }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
