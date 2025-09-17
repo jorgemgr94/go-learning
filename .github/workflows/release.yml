@@ -159,19 +159,6 @@ jobs:
           GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.Version=${VERSION}" -o release-assets/grpc-server-darwin-amd64 ./cmd/grpc/server
           GOOS=windows GOARCH=amd64 go build -ldflags "-X main.Version=${VERSION}" -o release-assets/grpc-server-windows-amd64.exe ./cmd/grpc/server
 
-      - name: Build and push Docker image
-        run: |
-          VERSION=${{ needs.check-release.outputs.version }}
-          docker build -t go-learning:${VERSION} .
-          docker build -t go-learning:latest .
-          flyctl auth docker
-          docker tag go-learning:${VERSION} registry.fly.io/go-learning:${VERSION}
-          docker tag go-learning:latest registry.fly.io/go-learning:latest
-          docker push registry.fly.io/go-learning:${VERSION}
-          docker push registry.fly.io/go-learning:latest
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-
       - name: Generate changelog
         id: changelog
         run: |
@@ -224,10 +211,7 @@ jobs:
         uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Deploy to Fly.io
-        run: |
-          VERSION=${{ needs.release.outputs.version }}
-          echo "Deploying version $VERSION to Fly.io..."
-          flyctl deploy --remote-only
+        run: flyctl deploy --app go-learning
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
