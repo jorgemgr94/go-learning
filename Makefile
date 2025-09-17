@@ -54,15 +54,53 @@ run-grpc-client:
 	@echo "Running grpc client..."
 	go run ./cmd/grpc/client
 
+# Development and testing
+test-all:
+	@echo "Running all tests..."
+	go test -v -race -coverprofile=coverage.out ./...
+	go tool cover -html=coverage.out -o coverage.html
+
+lint:
+	@echo "Running linter..."
+	golangci-lint run
+
+clean:
+	@echo "Cleaning build artifacts..."
+	rm -rf bin/ coverage.out coverage.html
+	make clean-grpc
+
 help:
-	@echo "Usage: make <target>"
-	@echo "Targets:"
-	@echo "  build-cards: 	Build the cards application"
-	@echo "  run-cards: 	Run the cards application"
-	@echo "  test-cards:	Run the cards application tests"
-	@echo "  build-basics:	Build the basics application"
-	@echo "  run-basics: 	Run the basics application"
-	@echo "  test-basics: 	Run the basics application tests"
-	@echo "  build-rest-api:	Build the rest api application"
-	@echo "  run-rest-api: 	Run the rest api application"
-	@echo "  test-rest-api: 	Run the rest api application tests"
+	@echo "Go Learning Project - Available Commands"
+	@echo "======================================"
+	@echo ""
+	@echo "📦 Cards Application:"
+	@echo "  build-cards     - Build the cards application"
+	@echo "  run-cards       - Run the cards application"
+	@echo "  test-cards      - Run cards application tests"
+	@echo ""
+	@echo "🎯 Basics Application:"
+	@echo "  build-basics    - Build the basics application"
+	@echo "  run-basics      - Run the basics application"
+	@echo "  test-basics     - Run basics application tests"
+	@echo ""
+	@echo "🌐 REST API Application:"
+	@echo "  build-rest-api  - Build the REST API application"
+	@echo "  run-rest-api    - Run the REST API application"
+	@echo "  test-rest-api   - Run REST API application tests"
+	@echo ""
+	@echo "🔌 gRPC Application:"
+	@echo "  compile-grpc    - Compile gRPC proto files to Go code"
+	@echo "  clean-grpc      - Remove generated gRPC files"
+	@echo "  run-grpc-server - Run the gRPC server"
+	@echo "  run-grpc-client - Run the gRPC client"
+	@echo ""
+	@echo "🔧 Development & Testing:"
+	@echo "  test-all        - Run all tests with coverage report"
+	@echo "  lint            - Run Go linter (golangci-lint)"
+	@echo "  clean           - Clean build artifacts and generated files"
+	@echo ""
+	@echo "❓ Help:"
+	@echo "  help            - Show this help message"
+	@echo ""
+	@echo "Usage: make <command>"
+	@echo "Example: make run-rest-api"
