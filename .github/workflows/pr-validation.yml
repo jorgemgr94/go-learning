@@ -60,7 +60,7 @@ jobs:
       - name: Predict version bump
         run: |
           # Analyze commits to predict version bump
-          COMMITS=$(git log --pretty=format:"%s" origin/main..HEAD)
+          COMMITS=$(git log --pretty=format:"%s" --no-merges origin/main..HEAD)
           
           BREAKING_CHANGES=$(echo "$COMMITS" | grep -E "^(feat|fix|perf|refactor)(\(.+\))?!: .+" | wc -l)
           NEW_FEATURES=$(echo "$COMMITS" | grep -E "^feat(\(.+\))?: .+" | wc -l)
