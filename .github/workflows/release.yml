@@ -227,7 +227,7 @@ jobs:
         run: |
           VERSION=${{ needs.release.outputs.version }}
           echo "Deploying version $VERSION to Fly.io..."
-          flyctl deploy --remote-only --image go-learning:$VERSION
+          flyctl deploy --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
