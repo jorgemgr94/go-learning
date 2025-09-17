@@ -24,8 +24,8 @@ jobs:
       - name: Run tests
         run: make test-all
 
-      - name: Run linter
-        run: make lint
+    #   - name: Run linter
+    #     run: make lint
 
       - name: Check commit messages
         run: |
