@@ -15,6 +15,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var (
+	Version   = "dev"
+	BuildTime = "unknown"
+	GitCommit = "unknown"
+)
+
 func main() {
 	config := config.LoadConfig()
 
@@ -23,6 +29,13 @@ func main() {
 	router := gin.Default()
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"message": "OK"})
+	})
+	router.GET("/version", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"version":    Version,
+			"build_time": BuildTime,
+			"git_commit": GitCommit,
+		})
 	})
 	router.GET("/graceful-test", func(c *gin.Context) {
 		slog.Info("slow request started")

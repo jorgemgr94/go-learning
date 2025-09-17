@@ -1,0 +1,251 @@
+name: Release and Deploy
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  # Job to determine if we should create a release
+  check-release:
+    runs-on: ubuntu-latest
+    outputs:
+      should-release: ${{ steps.check.outputs.should-release }}
+      version: ${{ steps.check.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if release should be created
+        id: check
+        run: |
+          # Only create releases on main branch pushes
+          if [ "${{ github.event_name }}" != "push" ] || [ "${{ github.ref }}" != "refs/heads/main" ]; then
+            echo "should-release=false" >> $GITHUB_OUTPUT
+            echo "version=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Check if there are conventional commits since last release
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            COMMITS=$(git rev-list --count HEAD)
+          else
+            COMMITS=$(git rev-list --count ${LAST_TAG}..HEAD)
+          fi
+          
+          if [ "$COMMITS" -eq 0 ]; then
+            echo "should-release=false" >> $GITHUB_OUTPUT
+            echo "version=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Check for conventional commits
+          if [ -z "$LAST_TAG" ]; then
+            CONVENTIONAL_COMMITS=$(git log --pretty=format:"%s" HEAD~${COMMITS}..HEAD | grep -E "^(feat|fix|perf|refactor|docs|style|test|chore)(\(.+\))?: .+" | wc -l)
+          else
+            CONVENTIONAL_COMMITS=$(git log --pretty=format:"%s" ${LAST_TAG}..HEAD | grep -E "^(feat|fix|perf|refactor|docs|style|test|chore)(\(.+\))?: .+" | wc -l)
+          fi
+          
+          if [ "$CONVENTIONAL_COMMITS" -eq 0 ]; then
+            echo "should-release=false" >> $GITHUB_OUTPUT
+            echo "version=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Determine version bump type
+          if [ -z "$LAST_TAG" ]; then
+            NEW_VERSION="v1.0.0"
+          else
+            # Check for breaking changes
+            if [ -z "$LAST_TAG" ]; then
+              BREAKING_CHANGES=$(git log --pretty=format:"%s" HEAD~${COMMITS}..HEAD | grep -E "^(feat|fix|perf|refactor)(\(.+\))?!: .+" | wc -l)
+            else
+              BREAKING_CHANGES=$(git log --pretty=format:"%s" ${LAST_TAG}..HEAD | grep -E "^(feat|fix|perf|refactor)(\(.+\))?!: .+" | wc -l)
+            fi
+            
+            if [ "$BREAKING_CHANGES" -gt 0 ]; then
+              # Major version bump
+              NEW_VERSION=$(echo $LAST_TAG | sed 's/v//' | awk -F. '{print "v" ($1+1) ".0.0"}')
+            else
+              # Check for new features
+              if [ -z "$LAST_TAG" ]; then
+                NEW_FEATURES=$(git log --pretty=format:"%s" HEAD~${COMMITS}..HEAD | grep -E "^feat(\(.+\))?: .+" | wc -l)
+              else
+                NEW_FEATURES=$(git log --pretty=format:"%s" ${LAST_TAG}..HEAD | grep -E "^feat(\(.+\))?: .+" | wc -l)
+              fi
+              
+              if [ "$NEW_FEATURES" -gt 0 ]; then
+                # Minor version bump
+                NEW_VERSION=$(echo $LAST_TAG | sed 's/v//' | awk -F. '{print "v" $1 "." ($2+1) ".0"}')
+              else
+                # Patch version bump
+                NEW_VERSION=$(echo $LAST_TAG | sed 's/v//' | awk -F. '{print "v" $1 "." $2 "." ($3+1)}')
+              fi
+            fi
+          fi
+          
+          echo "should-release=true" >> $GITHUB_OUTPUT
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_VERSION"
+
+  # Build and test job
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.25.0'
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run tests
+        run: make test-all
+
+      - name: Run linter
+        run: make lint
+
+  # Release job
+  release:
+    needs: [check-release, build-test]
+    runs-on: ubuntu-latest
+    if: needs.check-release.outputs.should-release == 'true'
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.25.0'
+
+      - name: Set version
+        id: version
+        run: echo "version=${{ needs.check-release.outputs.version }}" >> $GITHUB_OUTPUT
+
+      - name: Build release binaries
+        run: |
+          VERSION=${{ needs.check-release.outputs.version }}
+          mkdir -p release-assets
+          
+          # Build for multiple platforms
+          GOOS=linux GOARCH=amd64 go build -ldflags "-X main.Version=${VERSION}" -o release-assets/cards-linux-amd64 ./cmd/cards
+          GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.Version=${VERSION}" -o release-assets/cards-darwin-amd64 ./cmd/cards
+          GOOS=windows GOARCH=amd64 go build -ldflags "-X main.Version=${VERSION}" -o release-assets/cards-windows-amd64.exe ./cmd/cards
+          
+          GOOS=linux GOARCH=amd64 go build -ldflags "-X main.Version=${VERSION}" -o release-assets/basics-linux-amd64 ./cmd/basics
+          GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.Version=${VERSION}" -o release-assets/basics-darwin-amd64 ./cmd/basics
+          GOOS=windows GOARCH=amd64 go build -ldflags "-X main.Version=${VERSION}" -o release-assets/basics-windows-amd64.exe ./cmd/basics
+          
+          GOOS=linux GOARCH=amd64 go build -ldflags "-X main.Version=${VERSION}" -o release-assets/rest-api-linux-amd64 ./cmd/rest-api
+          GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.Version=${VERSION}" -o release-assets/rest-api-darwin-amd64 ./cmd/rest-api
+          GOOS=windows GOARCH=amd64 go build -ldflags "-X main.Version=${VERSION}" -o release-assets/rest-api-windows-amd64.exe ./cmd/rest-api
+          
+          GOOS=linux GOARCH=amd64 go build -ldflags "-X main.Version=${VERSION}" -o release-assets/grpc-server-linux-amd64 ./cmd/grpc/server
+          GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.Version=${VERSION}" -o release-assets/grpc-server-darwin-amd64 ./cmd/grpc/server
+          GOOS=windows GOARCH=amd64 go build -ldflags "-X main.Version=${VERSION}" -o release-assets/grpc-server-windows-amd64.exe ./cmd/grpc/server
+
+      - name: Build Docker image
+        run: |
+          VERSION=${{ needs.check-release.outputs.version }}
+          docker build -t go-learning:${VERSION} .
+          docker build -t go-learning:latest .
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          VERSION=${{ needs.check-release.outputs.version }}
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          echo "## What's Changed" > CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          
+          if [ -z "$LAST_TAG" ]; then
+            git log --pretty=format:"- %s (%h)" --reverse >> CHANGELOG.md
+          else
+            git log --pretty=format:"- %s (%h)" ${LAST_TAG}..HEAD --reverse >> CHANGELOG.md
+          fi
+          
+          echo "" >> CHANGELOG.md
+          echo "## Applications" >> CHANGELOG.md
+          echo "- **Cards**: Card game application" >> CHANGELOG.md
+          echo "- **Basics**: Go language basics examples" >> CHANGELOG.md
+          echo "- **REST API**: HTTP API server" >> CHANGELOG.md
+          echo "- **gRPC**: gRPC server and client" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "## Deployment" >> CHANGELOG.md
+          echo "Docker image: \`go-learning:${VERSION}\`" >> CHANGELOG.md
+          echo "Fly.io deployment: https://go-learning.fly.dev" >> CHANGELOG.md
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.check-release.outputs.version }}
+          name: Release ${{ needs.check-release.outputs.version }}
+          body_path: CHANGELOG.md
+          files: |
+            release-assets/*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Deploy job
+  deploy:
+    needs: [release]
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Fly.io CLI
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy to Fly.io
+        run: |
+          VERSION=${{ needs.release.outputs.version }}
+          echo "Deploying version $VERSION to Fly.io..."
+          flyctl deploy --remote-only --image go-learning:$VERSION
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Create GitHub Deployment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha,
+              environment: 'production',
+              description: `Deploy ${context.payload.release?.tag_name || 'latest'} to Fly.io`,
+              required_contexts: [],
+              auto_merge: false
+            });
+            
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: deployment.data.id,
+              state: 'success',
+              description: `Successfully deployed to Fly.io`,
+              environment_url: 'https://go-learning.fly.dev'
+            });
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -104,3 +104,52 @@ help:
 	@echo ""
 	@echo "Usage: make <command>"
 	@echo "Example: make run-rest-api"
+
+# Semantic versioning
+VERSION ?= $(shell git describe --tags --always --dirty)
+BUILD_TIME := $(shell date -u '+%Y-%m-%d_%H:%M:%S')
+GIT_COMMIT := $(shell git rev-parse --short HEAD)
+
+# Build flags for version info
+LDFLAGS := -ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME) -X main.GitCommit=$(GIT_COMMIT)"
+
+# Build with version info
+build-with-version:
+	@echo "Building with version $(VERSION)..."
+	go build $(LDFLAGS) ./cmd/cards
+	go build $(LDFLAGS) ./cmd/basics
+	go build $(LDFLAGS) ./cmd/rest-api
+	go build $(LDFLAGS) ./cmd/grpc/server
+
+# Check conventional commits
+check-commits:
+	@echo "Checking commit messages..."
+	@git log --pretty=format:"%s" origin/main..HEAD | while read commit; do \
+		if [[ ! "$$commit" =~ ^(feat|fix|perf|refactor|docs|style|test|chore|ci|build)(\(.+\))?(!)?: .+ ]]; then \
+			echo "❌ Invalid commit: $$commit"; \
+			echo "   Must follow: type(scope): description"; \
+			exit 1; \
+		else \
+			echo "✅ Valid commit: $$commit"; \
+		fi; \
+	done
+
+# Predict next version
+predict-version:
+	@echo "Analyzing commits for version prediction..."
+	@COMMITS=$$(git log --pretty=format:"%s" origin/main..HEAD); \
+	BREAKING=$$(echo "$$COMMITS" | grep -E "^(feat|fix|perf|refactor)(\(.+\))?!: .+" | wc -l); \
+	FEATURES=$$(echo "$$COMMITS" | grep -E "^feat(\(.+\))?: .+" | wc -l); \
+	FIXES=$$(echo "$$COMMITS" | grep -E "^fix(\(.+\))?: .+" | wc -l); \
+	echo "Breaking changes: $$BREAKING"; \
+	echo "New features: $$FEATURES"; \
+	echo "Bug fixes: $$FIXES"; \
+	if [ $$BREAKING -gt 0 ]; then \
+		echo "🚨 MAJOR version bump expected"; \
+	elif [ $$FEATURES -gt 0 ]; then \
+		echo "🆕 MINOR version bump expected"; \
+	elif [ $$FIXES -gt 0 ]; then \
+		echo "🐛 PATCH version bump expected"; \
+	else \
+		echo "📝 NO version bump expected"; \
+	fi
