@@ -11,6 +11,7 @@ permissions:
   contents: write
   pull-requests: read
   issues: read
+  deployments: write
 
 jobs:
   # Job to determine if we should create a release
