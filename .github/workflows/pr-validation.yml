@@ -105,7 +105,7 @@ jobs:
           else
             NEXT_VERSION="No release (no conventional commits)"
             BUMP_TYPE="NONE"
-            BUMP_EMOJI="📝"
+            BUMP_EMOJI="��"
           fi
           
           # Store values for output
@@ -137,7 +137,7 @@ jobs:
           
           # Add commit details
           if [ -n "$COMMITS" ]; then
-            echo "### �� Commits in this PR" >> $GITHUB_STEP_SUMMARY
+            echo "### 📝 Commits in this PR" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
             echo "$COMMITS" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
@@ -147,8 +147,6 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const { current_version, next_version, bump_type, bump_emoji, breaking_changes, new_features, bug_fixes, commits } = context.payload.outputs;
-            
             // Find existing bot comment
             const comments = await github.rest.issues.listComments({
               owner: context.repo.owner,
