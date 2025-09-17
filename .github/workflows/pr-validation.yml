@@ -58,29 +58,78 @@ jobs:
             exit 1
           fi
 
-      - name: Predict version bump
+      - name: Calculate next version
         run: |
           # Analyze commits to predict version bump
           # Filter out merge commits
           COMMITS=$(git log --pretty=format:"%s" --no-merges origin/main..HEAD)
           
+          # Get current version
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            CURRENT_VERSION="v0.0.0"
+            MAJOR=0
+            MINOR=0
+            PATCH=0
+          else
+            CURRENT_VERSION="$LAST_TAG"
+            # Extract version numbers (remove 'v' prefix)
+            VERSION_NUMBERS=$(echo "$LAST_TAG" | sed 's/v//')
+            MAJOR=$(echo "$VERSION_NUMBERS" | cut -d. -f1)
+            MINOR=$(echo "$VERSION_NUMBERS" | cut -d. -f2)
+            PATCH=$(echo "$VERSION_NUMBERS" | cut -d. -f3)
+          fi
+          
+          # Count different types of commits
           BREAKING_CHANGES=$(echo "$COMMITS" | grep -E "^(feat|fix|perf|refactor)(\(.+\))?!: .+" | wc -l)
           NEW_FEATURES=$(echo "$COMMITS" | grep -E "^feat(\(.+\))?: .+" | wc -l)
           BUG_FIXES=$(echo "$COMMITS" | grep -E "^fix(\(.+\))?: .+" | wc -l)
           
-          echo "## Version Bump Prediction" >> $GITHUB_STEP_SUMMARY
+          # Calculate next version
+          if [ "$BREAKING_CHANGES" -gt 0 ]; then
+            NEXT_MAJOR=$((MAJOR + 1))
+            NEXT_VERSION="v${NEXT_MAJOR}.0.0"
+            BUMP_TYPE="MAJOR"
+            BUMP_EMOJI="🚨"
+          elif [ "$NEW_FEATURES" -gt 0 ]; then
+            NEXT_MINOR=$((MINOR + 1))
+            NEXT_VERSION="v${MAJOR}.${NEXT_MINOR}.0"
+            BUMP_TYPE="MINOR"
+            BUMP_EMOJI="🆕"
+          elif [ "$BUG_FIXES" -gt 0 ]; then
+            NEXT_PATCH=$((PATCH + 1))
+            NEXT_VERSION="v${MAJOR}.${MINOR}.${NEXT_PATCH}"
+            BUMP_TYPE="PATCH"
+            BUMP_EMOJI="🐛"
+          else
+            NEXT_VERSION="No release (no conventional commits)"
+            BUMP_TYPE="NONE"
+            BUMP_EMOJI="📝"
+          fi
+          
+          # Create summary
+          echo "## 🚀 Release Prediction" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- Breaking changes: $BREAKING_CHANGES" >> $GITHUB_STEP_SUMMARY
-          echo "- New features: $NEW_FEATURES" >> $GITHUB_STEP_SUMMARY
-          echo "- Bug fixes: $BUG_FIXES" >> $GITHUB_STEP_SUMMARY
+          echo "**Current Version:** \`$CURRENT_VERSION\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Next Version:** \`$NEXT_VERSION\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Commit Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "- Breaking changes: **$BREAKING_CHANGES**" >> $GITHUB_STEP_SUMMARY
+          echo "- New features: **$NEW_FEATURES**" >> $GITHUB_STEP_SUMMARY
+          echo "- Bug fixes: **$BUG_FIXES**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🎯 Version Bump Type" >> $GITHUB_STEP_SUMMARY
+          echo "$BUMP_EMOJI **$BUMP_TYPE** version bump" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          if [ $BREAKING_CHANGES -gt 0 ]; then
-            echo "🚨 **MAJOR** version bump expected (breaking changes detected)" >> $GITHUB_STEP_SUMMARY
-          elif [ $NEW_FEATURES -gt 0 ]; then
-            echo "🆕 **MINOR** version bump expected (new features detected)" >> $GITHUB_STEP_SUMMARY
-          elif [ $BUG_FIXES -gt 0 ]; then
-            echo "🐛 **PATCH** version bump expected (bug fixes detected)" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "📝 **NO** version bump expected (no conventional commits)" >> $GITHUB_STEP_SUMMARY
+          # Add commit details
+          if [ -n "$COMMITS" ]; then
+            echo "### 📝 Commits in this PR" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "$COMMITS" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
           fi
+          
+          # Store version for potential use in other steps
+          echo "NEXT_VERSION=$NEXT_VERSION" >> $GITHUB_ENV
+          echo "BUMP_TYPE=$BUMP_TYPE" >> $GITHUB_ENV
