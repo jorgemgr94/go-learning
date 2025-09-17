@@ -36,13 +36,19 @@ jobs:
           
           INVALID_COMMITS=0
           while IFS= read -r commit; do
-            if [[ ! "$commit" =~ ^(feat|fix|perf|refactor|docs|style|test|chore|ci|build)(\(.+\))?(!)?: .+ ]]; then
+            # Skip empty lines
+            if [ -z "$commit" ]; then
+              continue
+            fi
+            
+            # Use grep instead of bash regex for better compatibility
+            if echo "$commit" | grep -qE "^(feat|fix|perf|refactor|docs|style|test|chore|ci|build)(\(.+\))?(!)?: .+"; then
+              echo "✅ Valid commit message: $commit"
+            else
               echo "❌ Invalid commit message: $commit"
               echo "   Must follow conventional commit format: type(scope): description"
               echo "   Examples: feat: add new feature, fix: resolve bug, feat!: breaking change"
               INVALID_COMMITS=$((INVALID_COMMITS + 1))
-            else
-              echo "✅ Valid commit message: $commit"
             fi
           done <<< "$COMMITS"
           
