@@ -2,7 +2,7 @@ app = "go-learning"
 primary_region = "iad"
 
 [build]
-  builder = "paketobuildpacks/builder:tiny"
+  builder = "heroku/buildpacks:20"
 
 [env]
   PORT = "8080"
