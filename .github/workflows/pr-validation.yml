@@ -30,7 +30,8 @@ jobs:
       - name: Check commit messages
         run: |
           # Check if commits follow conventional commit format
-          COMMITS=$(git log --pretty=format:"%s" origin/main..HEAD)
+          # Filter out merge commits and only get actual commits
+          COMMITS=$(git log --pretty=format:"%s" --no-merges origin/main..HEAD)
           echo "Checking commit messages:"
           echo "$COMMITS"
           
@@ -60,6 +61,7 @@ jobs:
       - name: Predict version bump
         run: |
           # Analyze commits to predict version bump
+          # Filter out merge commits
           COMMITS=$(git log --pretty=format:"%s" --no-merges origin/main..HEAD)
           
           BREAKING_CHANGES=$(echo "$COMMITS" | grep -E "^(feat|fix|perf|refactor)(\(.+\))?!: .+" | wc -l)
