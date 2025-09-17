@@ -1,0 +1,206 @@
+name: PR Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  validate-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.25.0'
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run tests
+        run: make test-all
+
+    #   - name: Run linter
+    #     run: make lint
+
+      - name: Check commit messages
+        run: |
+          # Check if commits follow conventional commit format
+          # Filter out merge commits and only get actual commits
+          COMMITS=$(git log --pretty=format:"%s" --no-merges origin/main..HEAD)
+          echo "Checking commit messages:"
+          echo "$COMMITS"
+          
+          INVALID_COMMITS=0
+          while IFS= read -r commit; do
+            # Skip empty lines
+            if [ -z "$commit" ]; then
+              continue
+            fi
+            
+            # Use grep instead of bash regex for better compatibility
+            if echo "$commit" | grep -qE "^(feat|fix|perf|refactor|docs|style|test|chore|ci|build)(\(.+\))?(!)?: .+"; then
+              echo "✅ Valid commit message: $commit"
+            else
+              echo "❌ Invalid commit message: $commit"
+              echo "   Must follow conventional commit format: type(scope): description"
+              echo "   Examples: feat: add new feature, fix: resolve bug, feat!: breaking change"
+              INVALID_COMMITS=$((INVALID_COMMITS + 1))
+            fi
+          done <<< "$COMMITS"
+          
+          if [ $INVALID_COMMITS -gt 0 ]; then
+            echo "Found $INVALID_COMMITS invalid commit messages"
+            exit 1
+          fi
+
+      - name: Calculate next version
+        id: version-calc
+        run: |
+          # Analyze commits to predict version bump
+          # Filter out merge commits
+          COMMITS=$(git log --pretty=format:"%s" --no-merges origin/main..HEAD)
+          
+          # Get current version
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            CURRENT_VERSION="v0.0.0"
+            MAJOR=0
+            MINOR=0
+            PATCH=0
+          else
+            CURRENT_VERSION="$LAST_TAG"
+            # Extract version numbers (remove 'v' prefix)
+            VERSION_NUMBERS=$(echo "$LAST_TAG" | sed 's/v//')
+            MAJOR=$(echo "$VERSION_NUMBERS" | cut -d. -f1)
+            MINOR=$(echo "$VERSION_NUMBERS" | cut -d. -f2)
+            PATCH=$(echo "$VERSION_NUMBERS" | cut -d. -f3)
+          fi
+          
+          # Count different types of commits
+          BREAKING_CHANGES=$(echo "$COMMITS" | grep -E "^(feat|fix|perf|refactor)(\(.+\))?!: .+" | wc -l)
+          NEW_FEATURES=$(echo "$COMMITS" | grep -E "^feat(\(.+\))?: .+" | wc -l)
+          BUG_FIXES=$(echo "$COMMITS" | grep -E "^fix(\(.+\))?: .+" | wc -l)
+          
+          # Calculate next version
+          if [ "$BREAKING_CHANGES" -gt 0 ]; then
+            NEXT_MAJOR=$((MAJOR + 1))
+            NEXT_VERSION="v${NEXT_MAJOR}.0.0"
+            BUMP_TYPE="MAJOR"
+            BUMP_EMOJI="🚨"
+          elif [ "$NEW_FEATURES" -gt 0 ]; then
+            NEXT_MINOR=$((MINOR + 1))
+            NEXT_VERSION="v${MAJOR}.${NEXT_MINOR}.0"
+            BUMP_TYPE="MINOR"
+            BUMP_EMOJI="🆕"
+          elif [ "$BUG_FIXES" -gt 0 ]; then
+            NEXT_PATCH=$((PATCH + 1))
+            NEXT_VERSION="v${MAJOR}.${MINOR}.${NEXT_PATCH}"
+            BUMP_TYPE="PATCH"
+            BUMP_EMOJI="🐛"
+          else
+            NEXT_VERSION="No release (no conventional commits)"
+            BUMP_TYPE="NONE"
+            BUMP_EMOJI="��"
+          fi
+          
+          # Store values for output
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "next_version=$NEXT_VERSION" >> $GITHUB_OUTPUT
+          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+          echo "bump_emoji=$BUMP_EMOJI" >> $GITHUB_OUTPUT
+          echo "breaking_changes=$BREAKING_CHANGES" >> $GITHUB_OUTPUT
+          echo "new_features=$NEW_FEATURES" >> $GITHUB_OUTPUT
+          echo "bug_fixes=$BUG_FIXES" >> $GITHUB_OUTPUT
+          echo "commits<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Create summary for step summary
+          echo "## 🚀 Release Prediction" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Current Version:** \`$CURRENT_VERSION\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Next Version:** \`$NEXT_VERSION\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Commit Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "- Breaking changes: **$BREAKING_CHANGES**" >> $GITHUB_STEP_SUMMARY
+          echo "- New features: **$NEW_FEATURES**" >> $GITHUB_STEP_SUMMARY
+          echo "- Bug fixes: **$BUG_FIXES**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🎯 Version Bump Type" >> $GITHUB_STEP_SUMMARY
+          echo "$BUMP_EMOJI **$BUMP_TYPE** version bump" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Add commit details
+          if [ -n "$COMMITS" ]; then
+            echo "### 📝 Commits in this PR" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "$COMMITS" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Post Release Prediction Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Find existing bot comment
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.data.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('🚀 Release Prediction')
+            );
+            
+            const commentBody = `## 🚀 Release Prediction
+            
+            **Current Version:** \`${{ steps.version-calc.outputs.current_version }}\`
+            **Next Version:** \`${{ steps.version-calc.outputs.next_version }}\`
+            
+            ### 📊 Commit Analysis
+            - Breaking changes: **${{ steps.version-calc.outputs.breaking_changes }}**
+            - New features: **${{ steps.version-calc.outputs.new_features }}**
+            - Bug fixes: **${{ steps.version-calc.outputs.bug_fixes }}**
+            
+            ### 🎯 Version Bump Type
+            ${{ steps.version-calc.outputs.bump_emoji }} **${{ steps.version-calc.outputs.bump_type }}** version bump
+            
+            ### 📝 Commits in this PR
+            \`\`\`
+            ${{ steps.version-calc.outputs.commits }}
+            \`\`\`
+            
+            ---
+            *This comment is automatically updated when commits are added to this PR.*`;
+            
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody
+              });
+            }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
