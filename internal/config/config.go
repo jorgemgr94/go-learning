@@ -5,11 +5,15 @@ import (
 	"os"
 	"strconv"
 
+	"go-learning/internal/db"
+
 	"github.com/joho/godotenv"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type Config struct {
 	Port int
+	DB   db.Config
 }
 
 func LoadConfig() Config {
@@ -29,7 +33,29 @@ func LoadConfig() Config {
 		port = 8080
 	}
 
+	// Database configuration
+	dbConfig := db.Config{
+		Name:        getEnvWithDefault("APP_NAME", "go-learning-db"),
+		Environment: getEnvWithDefault("ENVIRONMENT", "development"),
+		Database:    os.Getenv("DB_NAME"),
+		DBHost:      os.Getenv("DB_HOST"),
+		DBPort:      os.Getenv("DB_PORT"),
+		DBUser:      os.Getenv("DB_USER"),
+		DBSecret:    os.Getenv("DB_PASS"),
+		SSLMode:     getEnvWithDefault("DB_SSL_MODE", "disable"),
+		Metrics:     prometheus.NewRegistry(),
+	}
+
 	return Config{
 		Port: port,
+		DB:   dbConfig,
 	}
+}
+
+// getEnvWithDefault returns the environment variable value or a default if not set
+func getEnvWithDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
 }
